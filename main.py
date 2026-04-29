@@ -1,36 +1,33 @@
 import os
 import discord
-from discord.ext import commands
 from dotenv import load_dotenv
 from groq import Groq
 
-# Charger le .env
 load_dotenv()
-
-# Debug
-print("GROQ =", os.getenv("GROQ_API_KEY"))
-print("DISCORD =", os.getenv("DISCORD_TOKEN"))
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 if not DISCORD_TOKEN:
-    raise ValueError("❌ DISCORD_TOKEN manquant dans .env")
+    raise ValueError("❌ DISCORD_TOKEN manquant")
 
 if not GROQ_API_KEY:
-    raise ValueError("❌ GROQ_API_KEY manquant dans .env")
+    raise ValueError("❌ GROQ_API_KEY manquant")
 
 client = Groq(api_key=GROQ_API_KEY)
 
 intents = discord.Intents.default()
 intents.message_content = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+bot = discord.Client(intents=intents)
+
+# 🔥 MET TON ID ICI
+CHANNEL_ID = 1498933577843347497
 
 REGLEMENT = """
 Tu es un assistant IA FiveM RP pour le serveur Nebulix FA.
 
-Réponds en français, simplement et clairement.
+Tu réponds en français, simplement et clairement.
 Tu aides les joueurs à comprendre les règles RP.
 
 Règles importantes :
@@ -50,36 +47,45 @@ Si tu n'es pas sûr, dis au joueur de contacter le staff.
 async def on_ready():
     print(f"✅ Bot connecté : {bot.user}")
 
-@bot.command(name="ia")
-async def ia(ctx, *, question: str):
-    await ctx.typing()
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
 
-    try:
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[
-                {"role": "system", "content": REGLEMENT},
-                {"role": "user", "content": question}
-            ],
-            temperature=0.3,
-            max_tokens=700
-        )
+    # ✅ Vérifie le salon avec ID
+    if message.channel.id != CHANNEL_ID:
+        return
 
-        reponse = completion.choices[0].message.content
-        await ctx.reply(f"🤖 {reponse[:1900]}")
+    # ✅ Vérifie mention du bot
+    if bot.user not in message.mentions:
+        return
 
-    except Exception as e:
-        await ctx.reply(f"❌ Erreur Groq : {e}")
+    # 🔧 Nettoie la question
+    question = message.content
+    question = question.replace(f"<@{bot.user.id}>", "")
+    question = question.replace(f"<@!{bot.user.id}>", "")
+    question = question.strip()
 
-@bot.command(name="regle")
-async def regle(ctx, *, sujet: str):
-    await ctx.invoke(ia, question=f"Explique cette règle FiveM RP : {sujet}")
+    if not question:
+        await message.reply("❌ Pose une question après m'avoir mentionné.")
+        return
 
-@bot.command(name="rp")
-async def rp(ctx, *, situation: str):
-    await ctx.invoke(
-        ia,
-        question=f"Cette situation est-elle autorisée ou interdite en RP ? {situation}"
-    )
+    async with message.channel.typing():
+        try:
+            completion = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": REGLEMENT},
+                    {"role": "user", "content": question}
+                ],
+                temperature=0.3,
+                max_tokens=700
+            )
+
+            reponse = completion.choices[0].message.content
+            await message.reply(f"🤖 {reponse[:1900]}")
+
+        except Exception as e:
+            await message.reply(f"❌ Erreur IA : {e}")
 
 bot.run(DISCORD_TOKEN)
