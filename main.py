@@ -21,8 +21,11 @@ intents.message_content = True
 
 bot = discord.Client(intents=intents)
 
-# 🔥 MET TON ID ICI
-CHANNEL_ID = 1498938475968331776
+# 🔥 MET TES IDS DE SALONS ICI
+CHANNEL_IDS = [
+    1498944375613292656,
+    1498877010548883576  # Remplace par l'ID du deuxième salon
+]
 
 REGLEMENT = """
 Tu es un assistant IA FiveM RP pour le serveur Nebulix FA.
@@ -52,8 +55,8 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    # ✅ Vérifie le salon avec ID
-    if message.channel.id != CHANNEL_ID:
+    # ✅ Vérifie si le message est dans un des salons autorisés
+    if message.channel.id not in CHANNEL_IDS:
         return
 
     # ✅ Vérifie mention du bot
