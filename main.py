@@ -22,7 +22,7 @@ intents.message_content = True
 bot = discord.Client(intents=intents)
 
 # 🔥 MET TON ID ICI
-CHANNEL_ID = 1498933577843347497
+CHANNEL_ID = 1498938475968331776
 
 REGLEMENT = """
 Tu es un assistant IA FiveM RP pour le serveur Nebulix FA.
