@@ -21,10 +21,9 @@ intents.message_content = True
 
 bot = discord.Client(intents=intents)
 
-# 🔥 MET TES IDS DE SALONS ICI
 CHANNEL_IDS = [
     1498944375613292656,
-    1498877010548883576  # Remplace par l'ID du deuxième salon
+    1498877010548883576
 ]
 
 REGLEMENT = """
@@ -42,7 +41,7 @@ Règles importantes :
 - Pain RP obligatoire
 - Respect du staff obligatoire
 - Les scènes doivent rester cohérentes et réalistes
-- Le serveur est créer sur la base Seed
+- Le serveur est créé sur la base Seed
 
 Si tu n'es pas sûr, dis au joueur de contacter le staff.
 """
@@ -56,15 +55,12 @@ async def on_message(message):
     if message.author.bot:
         return
 
-    # ✅ Vérifie si le message est dans un des salons autorisés
     if message.channel.id not in CHANNEL_IDS:
         return
 
-    # ✅ Vérifie mention du bot
     if bot.user not in message.mentions:
         return
 
-    # 🔧 Nettoie la question
     question = message.content
     question = question.replace(f"<@{bot.user.id}>", "")
     question = question.replace(f"<@!{bot.user.id}>", "")
@@ -72,6 +68,11 @@ async def on_message(message):
 
     if not question:
         await message.reply("❌ Pose une question après m'avoir mentionné.")
+        return
+
+    # 👑 Réponse automatique fondateur
+    if any(mot in question.lower() for mot in ["fondateur", "créateur", "createur", "owner"]):
+        await message.reply("👑 Le Fondateur de Nebulix RP est Zenkyo.")
         return
 
     async with message.channel.typing():
